@@ -7528,6 +7528,7 @@ GameObject:
   m_Component:
   - component: {fileID: 543450653259175915}
   - component: {fileID: 919132149603880275}
+  - component: {fileID: 919132149603880278}
   - component: {fileID: 919132149603880274}
   - component: {fileID: 919132149603880276}
   - component: {fileID: 919132149603880277}
@@ -7582,6 +7583,7 @@ MonoBehaviour:
     m_Bits: 64
   moveSpeed: 4
   jumpForce: 6
+  headHeightOffset: 2.2
 --- !u!136 &919132149603880276
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -7627,6 +7629,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &919132149603880278
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919132149603880273}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb3224242c1faee4fb69f92a239044b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HologramSystem
+  playerHologram: {fileID: 1628940703}
+  offsetDistance: 2.5
 --- !u!1 &927016744737343624
 GameObject:
   m_ObjectHideFlags: 0

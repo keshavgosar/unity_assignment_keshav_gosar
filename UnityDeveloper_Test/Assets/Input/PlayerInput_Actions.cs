@@ -109,6 +109,24 @@ public partial class @PlayerInput_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Hologram"",
+                    ""type"": ""Value"",
+                    ""id"": ""32d4bc96-44ca-4405-9ed6-d08a7a3d88c3"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""GravityChange"",
+                    ""type"": ""Button"",
+                    ""id"": ""994a1410-bdcc-4862-9e3c-bffbf116d317"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -177,6 +195,72 @@ public partial class @PlayerInput_Actions: IInputActionCollection2, IDisposable
                     ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""2D Vector"",
+                    ""id"": ""4dff7844-6ef2-4ee2-b209-8931971e6299"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Hologram"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""67ee8c05-d628-4215-be6b-ad9446e32d67"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Hologram"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""43465dd8-97c4-47c4-a8ba-cfdcda377de0"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Hologram"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""39219954-94d4-46e4-b3aa-90565219b59c"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Hologram"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""ac40dcdb-114f-438b-b079-c045ae8f5800"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Hologram"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c4dd3f71-e14d-4d22-b0b0-bce1311994b9"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""GravityChange"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -187,6 +271,8 @@ public partial class @PlayerInput_Actions: IInputActionCollection2, IDisposable
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Movement = m_Player.FindAction("Movement", throwIfNotFound: true);
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
+        m_Player_Hologram = m_Player.FindAction("Hologram", throwIfNotFound: true);
+        m_Player_GravityChange = m_Player.FindAction("GravityChange", throwIfNotFound: true);
     }
 
     ~@PlayerInput_Actions()
@@ -269,6 +355,8 @@ public partial class @PlayerInput_Actions: IInputActionCollection2, IDisposable
     private List<IPlayerActions> m_PlayerActionsCallbackInterfaces = new List<IPlayerActions>();
     private readonly InputAction m_Player_Movement;
     private readonly InputAction m_Player_Jump;
+    private readonly InputAction m_Player_Hologram;
+    private readonly InputAction m_Player_GravityChange;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -288,6 +376,14 @@ public partial class @PlayerInput_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/Jump".
         /// </summary>
         public InputAction @Jump => m_Wrapper.m_Player_Jump;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Hologram".
+        /// </summary>
+        public InputAction @Hologram => m_Wrapper.m_Player_Hologram;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/GravityChange".
+        /// </summary>
+        public InputAction @GravityChange => m_Wrapper.m_Player_GravityChange;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -320,6 +416,12 @@ public partial class @PlayerInput_Actions: IInputActionCollection2, IDisposable
             @Jump.started += instance.OnJump;
             @Jump.performed += instance.OnJump;
             @Jump.canceled += instance.OnJump;
+            @Hologram.started += instance.OnHologram;
+            @Hologram.performed += instance.OnHologram;
+            @Hologram.canceled += instance.OnHologram;
+            @GravityChange.started += instance.OnGravityChange;
+            @GravityChange.performed += instance.OnGravityChange;
+            @GravityChange.canceled += instance.OnGravityChange;
         }
 
         /// <summary>
@@ -337,6 +439,12 @@ public partial class @PlayerInput_Actions: IInputActionCollection2, IDisposable
             @Jump.started -= instance.OnJump;
             @Jump.performed -= instance.OnJump;
             @Jump.canceled -= instance.OnJump;
+            @Hologram.started -= instance.OnHologram;
+            @Hologram.performed -= instance.OnHologram;
+            @Hologram.canceled -= instance.OnHologram;
+            @GravityChange.started -= instance.OnGravityChange;
+            @GravityChange.performed -= instance.OnGravityChange;
+            @GravityChange.canceled -= instance.OnGravityChange;
         }
 
         /// <summary>
@@ -391,5 +499,19 @@ public partial class @PlayerInput_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnJump(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Hologram" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHologram(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "GravityChange" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnGravityChange(InputAction.CallbackContext context);
     }
 }
