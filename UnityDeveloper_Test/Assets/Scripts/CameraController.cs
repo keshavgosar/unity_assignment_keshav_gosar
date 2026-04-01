@@ -1,13 +1,17 @@
 using UnityEngine;
 
+/// <summary>
+/// Created manual camera controller to make third person camera
+/// </summary>
+
 public class CameraController : MonoBehaviour
 {
     [Header("Target")]
     [SerializeField] private Transform target;
 
     [Header("Camera Positioning")]
-    [SerializeField] private float distance = 5f;
-    [SerializeField] private float height = 2f;
+    [SerializeField] private float distance = 6f;
+    [SerializeField] private float height = 2.5f;
     [SerializeField] private float positionSmoothSpeed = 10f;
 
     [Header("Camera Rotation")]

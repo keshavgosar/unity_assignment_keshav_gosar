@@ -1,5 +1,11 @@
 using UnityEngine;
 
+/// <summary>
+/// Seprate system to show and hide hologram when arrow button clicked and released.
+/// To make gravity change work you have to press Enter while selecting the arrow key to change direction,
+/// as per the assignment
+/// </summary>
+
 public class HologramSystem : MonoBehaviour
 {
     [SerializeField] private GameObject playerHologram;

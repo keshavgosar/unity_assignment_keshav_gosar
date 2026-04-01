@@ -1,6 +1,10 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Handles player movement, jumping, and gravity alignment logic.
+/// </summary>
+
 public class Player : MonoBehaviour
 {
     // using new input actions for player input
@@ -9,15 +13,29 @@ public class Player : MonoBehaviour
     [Header("Animations")]
     private Animator anim;
 
+    // layer used to compare collision with the ground
     [Header("Ground Layer")]
     [SerializeField] private LayerMask groundLayer;
+
+    // layer used to compare the collision object
+    [Header("Collectible Layer")]
+    [SerializeField] private LayerMask collectibleLayer;
 
     [Header("Input Settings")]
     private Vector2 moveInput;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 6f;
     private float rotationSpeed = 10f;
+
+    [Header("Ground & Fall Checks")]
+    [SerializeField] private float groundCheckRadius = 0.3f;
+    [SerializeField] private float groundCheckOffset = 0.1f;
+    [SerializeField] private float maxFallDistance = 50f; // distance before game over triggers
     private bool isOnGround;
+
+    [Header("Surface Alignment")]
+    [SerializeField] private float surfaceAlignmentSpeed = 15f;
+    [SerializeField] private float surfaceDetectionDistance = 2f;
 
     [Header("Hologram Settings")]
     [SerializeField] private float headHeightOffset = 1.5f;
@@ -43,6 +61,7 @@ public class Player : MonoBehaviour
 
         rb.useGravity = false;
         rb.freezeRotation = true;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
     }
 
     private void Start()
@@ -78,10 +97,12 @@ public class Player : MonoBehaviour
         // constantly apply force for the gravity
         rb.AddForce(currentGravityDir * gravityStrength, ForceMode.Acceleration);
 
-        // force the player to stay perfectly straight against the wall every frame
-        AlignToGravity();
+        // handle ground checks
+        CheckGrounded();
+        CheckFreeFall();
 
-        HandleMovement();
+        // movement and rotation
+        HandleMovementAndRotation();
     }
 
     private void OnMovementPerformed(InputAction.CallbackContext ctx)
@@ -94,54 +115,54 @@ public class Player : MonoBehaviour
         moveInput = Vector2.zero;
     }
 
-    private void HandleMovement()
+    private void HandleMovementAndRotation()
     {
-        if (moveInput.magnitude < 0.1f) return;
-
-        // true up direction based on current gravity
         Vector3 trueUp = -currentGravityDir;
-
-        Transform camTransform = Camera.main.transform;
-
-        // project movement onto the gravity plane
-        Vector3 cameraForward = Vector3.ProjectOnPlane(camTransform.forward, trueUp).normalized;
-        Vector3 cameraRight = Vector3.ProjectOnPlane(camTransform.right, trueUp).normalized;
-
-        Vector3 movementDirection = (cameraForward * moveInput.y + cameraRight * moveInput.x).normalized;
-
-        if (movementDirection != Vector3.zero)
+        if (isOnGround && Physics.Raycast(transform.position, currentGravityDir, out RaycastHit hit, surfaceDetectionDistance, groundLayer))
         {
-            // force the player to stand perfectly straight relative to the gravity wall
-            Quaternion targetRotation = Quaternion.LookRotation(movementDirection, trueUp);
-            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime));
-
-            Vector3 targetPosition = rb.position + movementDirection * moveSpeed * Time.fixedDeltaTime;
-            rb.MovePosition(targetPosition);
+            trueUp = hit.normal;
         }
-    }
 
-    private void AlignToGravity()
-    {
-        // absolute up vector based on current gravity
-        Vector3 trueUp = -currentGravityDir;
+        // calculate target rotation for aligning to the surface
+        Quaternion targetRotation = transform.rotation;
 
-        // take where the player is currently looking, but flatten it perfectly against the gravity wall
-        Vector3 flattenedForward = Vector3.ProjectOnPlane(transform.forward, trueUp).normalized;
-
-        if (flattenedForward != Vector3.zero)
+        if (moveInput.magnitude >= 0.1f)
         {
-            // eliminating the tilt by forcing rotation
-            Quaternion perfectlyUprightRotation = Quaternion.LookRotation(flattenedForward, trueUp);
+            // if moving, face the movement direction while keeping the correct UP
+            Transform camTransform = Camera.main.transform;
+            Vector3 cameraForward = Vector3.ProjectOnPlane(camTransform.forward, trueUp).normalized;
+            Vector3 cameraRight = Vector3.ProjectOnPlane(camTransform.right, trueUp).normalized;
 
-            rb.MoveRotation(perfectlyUprightRotation);
+            Vector3 movementDirection = (cameraForward * moveInput.y + cameraRight * moveInput.x).normalized;
+
+            if (movementDirection != Vector3.zero)
+            {
+                targetRotation = Quaternion.LookRotation(movementDirection, trueUp);
+
+                // move the player
+                Vector3 targetPosition = rb.position + movementDirection * moveSpeed * Time.fixedDeltaTime;
+                rb.MovePosition(targetPosition);
+            }
         }
+        else
+        {
+            // if not moving, just correct the tilt
+            Vector3 currentForward = Vector3.ProjectOnPlane(transform.forward, trueUp).normalized;
+            if (currentForward != Vector3.zero)
+            {
+                targetRotation = Quaternion.LookRotation(currentForward, trueUp);
+            }
+        }
+
+        // Apply rotation smoothly using slerp
+        rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime));
     }
 
     private void HandleJump(InputAction.CallbackContext ctx)
     {
         if (!ctx.performed || !isOnGround) return;
 
-        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+        rb.AddForce(-currentGravityDir * jumpForce, ForceMode.Impulse);
         isOnGround = false;
     }
 
@@ -204,6 +225,9 @@ public class Player : MonoBehaviour
         ApplyGravityChange();
     }
 
+    /// <summary>
+    /// Triggers the actual gravity shift towards the active holograms direction.
+    /// </summary>
     private void ApplyGravityChange()
     {
         // changing current gravity direction to arrow direction
@@ -220,11 +244,35 @@ public class Player : MonoBehaviour
         isOnGround = false;
     }
 
+    private void CheckGrounded()
+    {
+        // creates an invisible sphere at the players feet
+        Vector3 spherePosition = transform.position + (currentGravityDir * groundCheckOffset);
+
+        // checks if that sphere overlaps with anything on the Ground layer
+        isOnGround = Physics.CheckSphere(spherePosition, groundCheckRadius, groundLayer);
+    }
+
+    private void CheckFreeFall()
+    {
+        if (!isOnGround)
+        {
+            // cast a ray far down in the direction of gravity.
+            // if it hit nothing, the player fell off the puzzle.
+            if (!Physics.Raycast(transform.position, currentGravityDir, maxFallDistance, groundLayer))
+            {
+                GameManager.Instance.TriggerGameOver(false);
+            }
+        }
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
-        if (((1 << collision.gameObject.layer) & groundLayer) != 0)
+        // checking the collided layer using bit operation
+        if (((1 << collision.gameObject.layer) & collectibleLayer) != 0)
         {
-            isOnGround = true;
+            GameManager.Instance.AddScore(1);
+            Destroy(collision.gameObject);
         }
     }
 
